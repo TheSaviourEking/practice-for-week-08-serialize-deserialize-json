@@ -8,14 +8,15 @@ const server = http.createServer((req, res) => {
     reqBody += data;
   });
 
-    req.on("end", () => {
-	const contentType = req.headers['content-type'].split('/')[1];
+  req.on("end", () => {
     // Parse the body of the request as JSON if Content-Type header is
       // application/json
     // Parse the body of the request as x-www-form-urlencoded if Content-Type
       // header is x-www-form-urlencoded
-	if (reqBody) {
-	    if (contentType === 'x-www-form-urlencoded') {
+
+      const contentType = req.headers['content-type'].split('/')[1];
+      if (reqBody) {
+	  if (contentType === 'x-www-form-urlencoded') {
       req.body = reqBody
         .split("&")
         .map((keyValuePair) => keyValuePair.split("="))
@@ -25,13 +26,7 @@ const server = http.createServer((req, res) => {
           acc[key] = value;
           return acc;
         }, {});
-	    } else if (contentType === 'json') {
-		req.body = reqBody;
-		res.writeHead(200, {
-		    'content-Type': contentType
-		})
-		return res.end(req.body);
-	    }
+	  } else if (contentType === 'json') req.body = JSON.parse(reqBody);
 
       // Log the body of the request to the terminal
       console.log(req.body);
@@ -41,7 +36,13 @@ const server = http.createServer((req, res) => {
       "Hello": "World!"
     };
 
-    // Return the `resBody` object as JSON in the body of the response
+      // Return the `resBody` object as JSON in the body of the response
+      res.body = JSON.stringify(resBody);
+      res.writeHead(302, {
+	  'Content-Type': 'application/json',
+	  'Location': '/'
+      });
+      return res.end(JSON.stringify(req.body));
   });
 });
 
